@@ -1,0 +1,29 @@
+services:
+#    lthrt_user.example:
+#        class: Lthrt\UserBundle\Example
+#        arguments: [@service_id, "plain_value", %parameter%]
+    _defaults:
+        # automatically injects dependencies in your services
+        autowire: true
+        # automatically registers your services as commands, event subscribers, etc.
+        autoconfigure: true
+
+    Lthrt\UserBundle\Services\LoginDataRotator:
+        arguments: [ "@doctrine.orm.entity_manager", "%lthrt_user.login_data_length%" ]
+    
+    login.data.rotator: '@Lthrt\UserBundle\Services\LoginDataRotator'
+
+    Lthrt\UserBundle\Listener\LoginListener:
+        arguments: [ "@doctrine.orm.entity_manager", "@request_stack", "@login.data.rotator" ]
+        tags:
+            - { name: kernel.event_listener, event: security.interactive_login, method: onInteractiveLogin }
+            - { name: kernel.event_listener, event: security.authentication.failure, method: onAuthenticationFailure }
+    
+    security.login_listener: '@Lthrt\UserBundle\Listener\LoginListener'
+
+
+
+    Lthrt\UserBundle\Controller\:
+        resource: '../../Controller'
+        public: true
+        tags: ['controller.service_arguments']
